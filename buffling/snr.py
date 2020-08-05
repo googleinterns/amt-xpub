@@ -45,10 +45,11 @@ def generate_transition_matrix(n_pub, p=0.1, first2=False, tol=1e-15):
   return transition_mat / rs[:, np.newaxis]
 
 
-def calculate_snr_ij(i, j, input_logo_wgt, transition_mat, maximizer=False):
-  '''Calculate the SNR with fixed incremental change at i and j. 
+def calculate_signal_to_noise_ratio_of_logo_counts(i, j, input_logo_wgt, transition_mat, maximizer=False):
+  '''Calculate the SNR with fixed incremental change of two logo counts.
 
-  This is a helper function to calculate_snr().
+  This is a helper function to calculate_snr(). The two logo counts changed 
+  are indexed by i and j. 
 
   Args: 
     i, j: Integer, indices of the two logo-counts that are changed. 
@@ -73,8 +74,8 @@ def calculate_snr_ij(i, j, input_logo_wgt, transition_mat, maximizer=False):
   return snr
 
 
-def calculate_snr(input_logo_wgt, transition_mat):
-  """Calculate the SNR.
+def calculate_signal_to_noise_ratio(input_logo_wgt, transition_mat):
+  """Calculate the signal-to-noise ratio.
 
   Args: 
     input_logo_wgt: Input logo-counts weights. 
@@ -89,21 +90,21 @@ def calculate_snr(input_logo_wgt, transition_mat):
     for j in range(n_logo):
       if i == j:
         continue
-      s[i,j] = calculate_snr_ij(i, j, input_logo_wgt, transition_mat) 
+      s[i,j] = calculate_signal_to_noise_ratio_of_logo_counts(i, j, input_logo_wgt, transition_mat) 
   return s
 
 
-def calculate_worst_snr(input_logo_wgt, transition_mat):
-  """Calculate the worst SNR (quickly).
+def calculate_max_signal_to_noise_ratio(input_logo_wgt, transition_mat):
+  """Calculate the max signal-to-noise ratio (quickly).
 
   Args: 
     input_logo_wgt: Input logo-counts weights. 
     transition_mat: Transition matrix of logo-counts with blipping. 
 
   Return: 
-    A real number, the maximal SNR.
+    A real number, the maximal signal-to-noise ratio.
   """
   n_logo = transition_mat.shape[0]
   i = 0
   j = n_logo - 1
-  return calculate_snr_ij(i, j, input_logo_wgt, transition_mat) 
+  return calculate_signal_to_noise_ratio_of_logo_counts(i, j, input_logo_wgt, transition_mat) 

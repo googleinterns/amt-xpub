@@ -38,7 +38,7 @@ for i in range(4):
   skewness = 3 * i 
   input_logo_wgt = np.exp(- skewness * (np.arange(NUM_LOGO) + 1) / NUM_LOGO)
   input_logo_wgt /= sum(input_logo_wgt)
-  s = snr.calculate_snr(input_logo_wgt, TRANSIT_MAT)
+  s = snr.calculate_signal_to_noise_ratio(input_logo_wgt, TRANSIT_MAT)
   sns.heatmap(np.sqrt(s), ax = ax[i])
   ax[i].set_title(f"SNR (skewness: {skewness})")
 plt.savefig('docs/fig/1_snr_vs_ij.pdf')
@@ -51,7 +51,7 @@ data = data.astype({'logo': 'category'})
 for skewness in (np.arange(6) * 2):
   input_logo_wgt = np.exp(- skewness * (np.arange(NUM_LOGO) + 1) / NUM_LOGO)
   input_logo_wgt /= sum(input_logo_wgt)
-  s,c = snr.calculate_snr_ij(0, NUM_LOGO-1, input_logo_wgt, TRANSIT_MAT, maximizer=True)
+  s,c = snr.calculate_signal_to_noise_ratio_of_logo_counts(0, NUM_LOGO-1, input_logo_wgt, TRANSIT_MAT, maximizer=True)
   for i in range(len(c)):
     data.loc[len(data)] = [skewness, i, c[i]]
 plt.figure(figsize=(6,4))
@@ -69,7 +69,7 @@ data = pd.DataFrame(columns=['skewness', 'SNR'])
 for skewness in skewness_breaks:
   input_logo_wgt = np.exp(- skewness * (np.arange(NUM_LOGO) + 1) / NUM_LOGO)
   input_logo_wgt /= sum(input_logo_wgt)
-  s = snr.calculate_worst_snr(np.array(input_logo_wgt), TRANSIT_MAT)
+  s = snr.calculate_max_signal_to_noise_ratio(np.array(input_logo_wgt), TRANSIT_MAT)
   data.loc[len(data)] = [skewness, s]
 plt.figure(figsize=(6,4))
 sns.scatterplot(x="skewness", y="SNR", data=data)
