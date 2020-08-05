@@ -45,7 +45,8 @@ def generate_transition_matrix(n_pub, p=0.1, first2=False, tol=1e-15):
   return transition_mat / rs[:, np.newaxis]
 
 
-def calculate_signal_to_noise_ratio_of_logo_counts(i, j, input_logo_wgt, transition_mat, maximizer=False):
+def calculate_signal_to_noise_ratio_of_logo_counts(
+  i, j, input_logo_wgt, transition_mat, maximizer=False):
   '''Calculate the SNR with fixed incremental change of two logo counts.
 
   This is a helper function to calculate_snr(). The two logo counts changed 
@@ -90,7 +91,8 @@ def calculate_signal_to_noise_ratio(input_logo_wgt, transition_mat):
     for j in range(n_logo):
       if i == j:
         continue
-      s[i,j] = calculate_signal_to_noise_ratio_of_logo_counts(i, j, input_logo_wgt, transition_mat) 
+      s[i,j] = calculate_signal_to_noise_ratio_of_logo_counts(
+        i, j, input_logo_wgt, transition_mat) 
   return s
 
 
@@ -107,4 +109,5 @@ def calculate_max_signal_to_noise_ratio(input_logo_wgt, transition_mat):
   n_logo = transition_mat.shape[0]
   i = 0
   j = n_logo - 1
-  return calculate_signal_to_noise_ratio_of_logo_counts(i, j, input_logo_wgt, transition_mat) 
+  return calculate_signal_to_noise_ratio_of_logo_counts(
+    i, j, input_logo_wgt, transition_mat) 

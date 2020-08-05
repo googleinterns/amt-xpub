@@ -32,7 +32,6 @@ TRANSIT_MAT = snr.generate_transition_matrix(NUM_PUBS, FLIP_PROB)
 
 
 def main():
-
   ## heatmap: SNR vs (i, j)
   fig, ax = plt.subplots(1,4,figsize=(16, 3))
   for i in range(4): 
@@ -45,24 +44,24 @@ def main():
   plt.savefig('docs/fig/1_snr_vs_ij.pdf')
   plt.close()
 
-
   ## line plot: maximizing coefficients vs skewness
   data = pd.DataFrame(columns=['skewness', 'logo', 'coefficient'])
   data = data.astype({'logo': 'category'})
   for skewness in (np.arange(6) * 2):
     input_logo_wgt = np.exp(- skewness * (np.arange(NUM_LOGO) + 1) / NUM_LOGO)
     input_logo_wgt /= sum(input_logo_wgt)
-    s,c = snr.calculate_signal_to_noise_ratio_of_logo_counts(0, NUM_LOGO-1, input_logo_wgt, TRANSIT_MAT, maximizer=True)
+    s,c = snr.calculate_signal_to_noise_ratio_of_logo_counts(
+      0, NUM_LOGO-1, input_logo_wgt, TRANSIT_MAT, maximizer=True)
     for i in range(len(c)):
       data.loc[len(data)] = [skewness, i, c[i]]
   plt.figure(figsize=(6,4))
   sns.scatterplot(x="logo", y="coefficient", hue='skewness', data=data)
-  sns.lineplot(x="logo", y="coefficient", hue='skewness', legend=False, data=data)
+  sns.lineplot(
+    x="logo", y="coefficient", hue='skewness', legend=False, data=data)
   plt.hlines(0, -.5, NUM_LOGO-1, colors="grey", linestyles="dashed")
   plt.title(f"logo-counts coefficients of SNR maximizer ({NUM_PUBS} pubs)")
   plt.savefig('docs/fig/2_max_logo_coefs.pdf')
   plt.close()
-
 
   ## line plot: SNR vs skewness
   skewness_breaks = np.arange(8 * NUM_PUBS ** 2, step=NUM_PUBS ** 2 / 2)
@@ -70,7 +69,8 @@ def main():
   for skewness in skewness_breaks:
     input_logo_wgt = np.exp(- skewness * (np.arange(NUM_LOGO) + 1) / NUM_LOGO)
     input_logo_wgt /= sum(input_logo_wgt)
-    s = snr.calculate_max_signal_to_noise_ratio(np.array(input_logo_wgt), TRANSIT_MAT)
+    s = snr.calculate_max_signal_to_noise_ratio(
+      np.array(input_logo_wgt), TRANSIT_MAT)
     data.loc[len(data)] = [skewness, s]
   plt.figure(figsize=(6,4))
   sns.scatterplot(x="skewness", y="SNR", data=data)
