@@ -15,7 +15,7 @@
 
 """Create plots for privacy evaluation of "shuffling+flipping"."""
 
-from buffling import snr
+from buffling import signal_to_noise_ratio as snr
 import numpy as np
 import pandas as pd
 import seaborn as sns 
