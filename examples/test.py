@@ -23,6 +23,7 @@ EPSILON = np.log(3)
 DELTA = 1e-4
 NUM_PUB = 8
 NUM_BIT = 1000000
+NUM_SAMPLING = 500000
 
 
 def main():
@@ -38,8 +39,9 @@ def main():
 
 
   # required p for multiple BFs
-  print(f"\n{NUM_PUB} publishers, {NUM_BIT} bits, epsilon = {EPSILON}, delta = {DELTA}")
-  p = privacy.estimate_p(NUM_PUB, NUM_BIT, e=EPSILON, d=DELTA, n_simu=500000) 
+  print(f"\n{NUM_PUB} publishers, {NUM_BIT} bits")
+  print(f"epsilon = {EPSILON}, delta = {DELTA}, sampling {NUM_SAMPLING} times")
+  p = privacy.estimate_p(NUM_PUB, NUM_BIT, e=EPSILON, d=DELTA, n_simu=NUM_SAMPLING) 
   print(f"Required flipping probability = {p}.")
 
 
