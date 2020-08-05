@@ -19,6 +19,7 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 
+
 # @title helpers
 def generate_transition_matrix(n_pub, p=0.1, first2=False, tol=1e-15):
   '''Generate the transition matrix of logos. 
@@ -44,7 +45,7 @@ def generate_transition_matrix(n_pub, p=0.1, first2=False, tol=1e-15):
   return transition_mat / rs[:, np.newaxis]
 
 
-def calculate_snr_ij(i,j,input_logo_wgt,transition_mat,maximizer=False):
+def calculate_snr_ij(i, j, input_logo_wgt, transition_mat, maximizer=False):
   '''Calculate the SNR with fixed incremental change at i and j. 
 
   This is a helper function to calculate_snr().
@@ -71,7 +72,8 @@ def calculate_snr_ij(i,j,input_logo_wgt,transition_mat,maximizer=False):
     return snr, c
   return snr
 
-def calculate_snr(input_logo_wgt,transition_mat):
+
+def calculate_snr(input_logo_wgt, transition_mat):
   """Calculate the SNR.
 
   Args: 
@@ -87,10 +89,11 @@ def calculate_snr(input_logo_wgt,transition_mat):
     for j in range(n_logo):
       if i == j:
         continue
-      s[i,j] = calculate_snr_ij(i,j,input_logo_wgt,transition_mat) 
+      s[i,j] = calculate_snr_ij(i, j, input_logo_wgt, transition_mat) 
   return s
 
-def calculate_worst_snr(input_logo_wgt,transition_mat):
+
+def calculate_worst_snr(input_logo_wgt, transition_mat):
   """Calculate the worst SNR (quickly).
 
   Args: 
@@ -103,4 +106,4 @@ def calculate_worst_snr(input_logo_wgt,transition_mat):
   n_logo = transition_mat.shape[0]
   i = 0
   j = n_logo - 1
-  return calculate_snr_ij(i,j,input_logo_wgt,transition_mat) 
+  return calculate_snr_ij(i, j, input_logo_wgt, transition_mat) 
