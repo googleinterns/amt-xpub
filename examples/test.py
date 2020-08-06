@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from buffling import privacy
+import buffling.privacy as bp
 import numpy as np
 import pandas as pd
 
@@ -21,7 +21,7 @@ import pandas as pd
 # global parameters
 EPSILON = np.log(3)
 DELTA = 1e-4
-NUM_PUB = 8
+NUM_PUB = 1
 NUM_BIT = 1000000
 NUM_SAMPLING = 500000
 
@@ -32,7 +32,8 @@ def main():
   data = pd.DataFrame(columns=['BF size', 'required p'])
   for n_bit in (1000, 2000, 5000, 10000, 20000, 50000, 
                 100000, 200000, 500000, 1000000, 2000000):
-    p_hat = privacy.find_p_given_yd_is_1(e=EPSILON, n_bit = n_bit, d=DELTA)
+    p_hat = bp.find_flip_prob_of_one_bloom_filter(
+      e=EPSILON, n_bit = n_bit, d=DELTA)
     data.loc[len(data)] = [n_bit, p_hat]
   data = data.astype({'BF size': 'int'})
   print("\n", data)
@@ -41,7 +42,8 @@ def main():
   # required p for multiple BFs
   print(f"\n{NUM_PUB} publishers, {NUM_BIT} bits")
   print(f"epsilon = {EPSILON}, delta = {DELTA}, sampling {NUM_SAMPLING} times")
-  p = privacy.estimate_p(NUM_PUB, NUM_BIT, e=EPSILON, d=DELTA, n_simu=NUM_SAMPLING) 
+  p = bp.estimate_flip_prob(
+    NUM_PUB, NUM_BIT, e=EPSILON, d=DELTA, n_simu=NUM_SAMPLING) 
   print(f"Required flipping probability = {p}.")
 
 
