@@ -22,22 +22,21 @@ import pandas as pd
 EPSILON = np.log(3)
 DELTA = 1e-4
 NUM_PUB = 1
-NUM_BIT = 1000000
-NUM_SAMPLING = 500000
+NUM_BIT = 10000
+NUM_SAMPLING = 100000
 
 
 def main():
   # required p for one BF
-  print(f"epsilon = {EPSILON}, delta = {DELTA}\n")
-  data = pd.DataFrame(columns=['BF size', 'required p'])
-  for n_bit in (1000, 2000, 5000, 10000, 20000, 50000, 
-                100000, 200000, 500000, 1000000, 2000000):
-    p_hat = bp.find_flip_prob_of_one_bloom_filter(
-      e=EPSILON, n_bit = n_bit, d=DELTA)
-    data.loc[len(data)] = [n_bit, p_hat]
-  data = data.astype({'BF size': 'int'})
-  print("\n", data)
-
+  data = pd.DataFrame(columns=['# input 1s', 'epsilon'])
+  for count_input_ones in (1, 1250, 3750, 6250, 8750, 9999):
+    p_hat = bp.evaluate_privacy_of_one_bloom_filter(
+      count_input_ones=count_input_ones, p=0.05, n_bit=NUM_BIT, 
+      d=0.001, n_simu=5000)
+    data.loc[len(data)] = [count_input_ones, p_hat]
+  print("One bloom filter of {NUM_BIT} bits.")
+  print("Estimated privacy parameter (delta=0.001):")
+  print(data)
 
   # required p for multiple BFs
   print(f"\n{NUM_PUB} publishers, {NUM_BIT} bits")

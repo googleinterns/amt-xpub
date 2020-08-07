@@ -99,18 +99,17 @@ def ratio_of_hypergeometric_mgf(
 
 
 def evaluate_privacy_of_one_bloom_filter(
-  count_input_ones, p, n_bit, type="exact", 
-  count_output_ones=None, depth=1000):
-  """Evaluate the privacy parameter of given count of input ones.
+  count_input_ones, p, n_bit, d=1e-4, n_simu=50000, depth=1000):
+  """Evaluate the privacy of one bloom filter.
 
-  Evaluate the privacy of one bloom filter given the count of input ones. 
+  Evaluate the privacy of one bloom filter given the count of input ones.
 
   Args: 
-    count_input_ones: An integer, the # of 1s in the input bloom filter.
+    count_input_ones: Integer, the # of 1s in the input bloom filter.
     p: An real number in [0,1], bit flipping probability.
     n_bit: Integer, the length of each bloom filter.
-    type: A character string, either "exact" or "asymp".
-    count_output_ones: An integer, the # of 1s in the output bloom filter.
+    d: A real number, the approximation parameter.
+    n_simu: Integer, the number of sampling times. Shoule be larger than 1/d.
     depth: Integer, Approximating depth. 
       Will be Passed to evaluate_gauss_continued_fraction().
 
@@ -119,107 +118,21 @@ def evaluate_privacy_of_one_bloom_filter(
   """
   ## process the inputs
   q = 1 - p
-  if count_output_ones is None:
-    count_output_ones = np.random.binomial(count_input_ones, q) + \
-      np.random.binomial(n_bit - count_input_ones, p)
-    if count_input_ones + count_output_ones > n_bit: 
-      count_input_ones = n_bit - count_input_ones
-      count_output_ones = n_bit - count_output_ones
+  if isinstance(count_input_ones, int):
+    count_input_ones = np.repeat(count_input_ones, n_simu)
 
-  if (type == "asymp"): ## normal approximation
-    b = 2 * np.log(q / p)
-    l = -b * count_input_ones / n_bit + \
-      b ** 2 / 2 * count_input_ones * (n_bit - count_input_ones) * \
-      (2 * count_output_ones - n_bit) / n_bit ** 3
-    l = np.exp(l)
-  elif (type == "exact"): ## exact form
-    l = ratio_of_hypergeometric_mgf(
-      count_input_ones=count_input_ones, 
-      count_output_ones=count_output_ones, 
-      p=p, n_bit=n_bit, depth=depth
-    ) 
-  else:
-    raise ValueError("type should be either `asympt` or `exact`.")
-  
-  ## Pr(A(D')=X) / Pr(A(D)=X)
-  privacy_loss = p / q / l ## version 2
+  ## sample count_output_ones, given count_input_ones
+  count_output_ones = np.random.binomial(count_input_ones, q, n_simu) + \
+    np.random.binomial(n_bit - count_input_ones, p, n_simu)
+  r = np.zeros(n_simu)
+  for i in range(n_simu):
+    r[i] = ratio_of_hypergeometric_mgf(
+      count_input_ones[i], count_output_ones[i], 
+      p=p, n_bit=n_bit, depth=depth) 
+  privacy_loss = p / q / r ## Pr(A(D')=X) / Pr(A(D)=X)
+  e = np.quantile(np.abs(np.log(privacy_loss)), 1 - d)
 
-  return np.log(privacy_loss)
-
-
-def find_quantile_of_count_of_output_ones(p, n_bit, d):
-  '''Find a quantile of the count of 1s in one output bloom filter.
-  
-  Consider one bloom filter and assume the input bloom filter has 1 one. 
-  This funciton finds the the d quantile of the count of ones in the output BF. 
-  Note: The count of ones in the output is a random variable. 
-  
-  Args: 
-    p: An real number in [0,1], bit flipping probability.
-    n_bit: Integer, the length of each bloom filter.
-    d: A real number, the approximation parameter.
-  
-  Returns: 
-    An integer, the # of 1s in bloom filter after "shuffling+blipping".
-  '''
-  q = 1 - p
-  v = stats.binom(n_bit - 1, p) ## pmf of count_output_ones
-  lower = 0
-  upper = n_bit
-  count_output_ones = (lower + upper) // 2
-  while lower + 1 < upper: 
-    cdf_output_ones = p * v.cdf(count_output_ones) + \
-      q * v.cdf(count_output_ones - 1) 
-    if cdf_output_ones > d:
-      upper = count_output_ones
-    else: 
-      lower = count_output_ones
-    count_output_ones = (lower + upper) // 2
-  
-  return count_output_ones
-
-
-def find_flip_prob_of_one_bloom_filter(e, n_bit, d=1e-4):
-  """Find the needed flipping probability for one bloom filter. 
-  
-  Find the flipping probability (p) needed for a target privacy parameter. 
-  Use binary search for p. The privacy parameter is evaluated by assuming 
-  exactly one observed 1.
-
-  Args: 
-    e: A real number, the privacy parameter (epsilon).
-    n_bit: Integer, the length of each bloom filter.
-    d: A real number, the approximation parameter.
-
-  Returns:
-    A real number of the estimated p.
-  """
-  
-  lower = 0
-  upper = .5
-  p = (lower + upper) / 2
-  while lower + 1e-7 < upper:
-    epsilon = np.zeros(2)
-
-    ## find d/2 quantile
-    count_output_ones = find_quantile_of_count_of_output_ones(p, n_bit, d / 2)
-    epsilon[0] = evaluate_privacy_of_one_bloom_filter(
-      1, p, n_bit, depth=1000, count_output_ones=count_output_ones)
-    
-    ## find 1-d/2 quantile
-    count_output_ones = find_quantile_of_count_of_output_ones(
-      p, n_bit, 1 - d / 2)
-    epsilon[1] = evaluate_privacy_of_one_bloom_filter(
-      1, p, n_bit, depth=1000, count_output_ones=count_output_ones)
-
-    epsilon_hat = np.max(abs(epsilon))
-    if epsilon_hat > e:
-      lower = p
-    else: 
-      upper = p
-    p = (lower + upper) / 2
-
-  return p
+  return e
 
 
 def estimate_privacy_of_bloom_filter(
