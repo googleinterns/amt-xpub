@@ -13,19 +13,7 @@
 # limitations under the License.
 
 
-"""Evaluate differential privacy of the 'shuffling+flipping' algorithm. 
-
-* scientific computation: 
-  * evaluate_gauss_continued_fraction() and 
-  * ratio_of_hypergeometric_mgf()
-* DP evaluation for one bloom filter: 
-  * evaluate_eps_given_yd()
-  * find_yx_given_yd_Is_1()
-  * find_p_given_yd_is_1
-* Evaluation for multiple bloom filters:
-  * estimate_eps() 
-  * estimate_p() 
-"""
+"""Evaluate differential privacy of the 'shuffling+flipping' algorithm."""
 
 
 import numpy as np
