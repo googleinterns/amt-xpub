@@ -24,7 +24,8 @@ def evaluate_gauss_continued_fraction(a, b ,c, z, depth=1000):
   """Approximate the value of Gauss' continued fraction. 
   
   Calculate phi(a + 1, b; c + 1; z) / phi(a, b; c; z)
-  where phi is the hypergeometric function.
+  where phi is the hypergeometric function. Please see 
+  `docs/technical-details.md` for details. 
 
   Args: 
     a, b, c, z: Numeric parameters to the function. 
@@ -33,6 +34,11 @@ def evaluate_gauss_continued_fraction(a, b ,c, z, depth=1000):
   Returns:
     The approximated value.
   """
+  ## check input
+  if c < 0:
+    raise ValueError('c must be non-negative.')
+
+  ## compute the constant series
   k = np.zeros(depth)
   for i in range(depth): 
     if i % 2 == 0:
@@ -45,6 +51,8 @@ def evaluate_gauss_continued_fraction(a, b ,c, z, depth=1000):
       k[0] /= 1
     else: 
       k[i] /= (c + i) * (c + i + 1)
+  
+  ## compute the continued fractions
   f = np.ones(depth)
   for i in range(depth - 1):
     f[depth - i - 2] += k[depth - i - 2] * z / f[depth - i - 1]
@@ -59,6 +67,7 @@ def ratio_of_hypergeometric_mgf(
   where x ~ HG(m, count_input_ones, count_output_ones), and 
   y ~ HG(m, count_input_ones + 1, count_output_ones) 
   Note: The increment change means that we have count_input_ones + 1.
+  Please see `docs/technical-details.md` for details. 
 
   Args: 
     count_input_ones: An integer, the # of 1s in the input bloom filter.
@@ -69,13 +78,16 @@ def ratio_of_hypergeometric_mgf(
       Will be Passed to evaluate_gauss_continued_fraction().
 
   Returns:
-    A real number of the simulated epsilon.
+    A real number of the estimated epsilon.
   """
   q = 1 - p
+
+  ## change count_input_ones and count_output_ones using the symmtric property
   if count_input_ones + count_output_ones > n_bit: 
     count_input_ones = n_bit - count_input_ones
     count_output_ones = n_bit - count_output_ones
   
+  ## invoke Gauss continued fractions
   a = - count_input_ones
   b = - count_output_ones
   c = n_bit - count_output_ones - count_input_ones 
@@ -88,9 +100,7 @@ def ratio_of_hypergeometric_mgf(
 
 def evaluate_privacy_of_one_bloom_filter(
   count_input_ones, p, n_bit, d=1e-4, n_simu=50000, depth=1000):
-  """Evaluate the privacy of one bloom filter.
-
-  Evaluate the privacy of one bloom filter given the count of input ones.
+  """Evaluate the privacy of one bloom filter given the count of input ones.
 
   Args: 
     count_input_ones: Integer, the # of 1s in the input bloom filter.
@@ -102,14 +112,25 @@ def evaluate_privacy_of_one_bloom_filter(
       Will be Passed to evaluate_gauss_continued_fraction().
 
   Returns:
-    A real number of the simulated epsilon.
+    A real number of the estimated epsilon.
   """
-  ## process the inputs
+  ## check input
   q = 1 - p
   if isinstance(count_input_ones, int):
     count_input_ones = np.repeat(count_input_ones, n_simu)
 
-  ## sample count_output_ones, given count_input_ones
+  ## sample (count_output_ones) given (count_input_ones + 1)
+  count_output_ones = np.random.binomial(count_input_ones + 1, q, n_simu) + \
+    np.random.binomial(n_bit - count_input_ones - 1, p, n_simu)
+  r = np.zeros(n_simu)
+  for i in range(n_simu):
+    r[i] = ratio_of_hypergeometric_mgf(
+      count_input_ones[i], count_output_ones[i], 
+      p=p, n_bit=n_bit, depth=depth) 
+  privacy_loss = p / q / r ## Pr(A(D')=X) / Pr(A(D)=X)
+  e0 = np.quantile(-np.log(privacy_loss), 1 - d)
+
+  ## sample (count_output_ones) given (count_input_ones)
   count_output_ones = np.random.binomial(count_input_ones, q, n_simu) + \
     np.random.binomial(n_bit - count_input_ones, p, n_simu)
   r = np.zeros(n_simu)
@@ -118,9 +139,10 @@ def evaluate_privacy_of_one_bloom_filter(
       count_input_ones[i], count_output_ones[i], 
       p=p, n_bit=n_bit, depth=depth) 
   privacy_loss = p / q / r ## Pr(A(D')=X) / Pr(A(D)=X)
-  e = np.quantile(np.abs(np.log(privacy_loss)), 1 - d)
+  e1 = np.quantile(np.log(privacy_loss), 1 - d)
 
-  return e
+  ## return the max
+  return max(e0, e1)
 
 
 def estimate_privacy_of_bloom_filter(
@@ -138,11 +160,12 @@ def estimate_privacy_of_bloom_filter(
   Returns:
     An estimated of flipping probability.
   """
+  ## generate the parameters needed for sampling distributions
   q = 1 - p
   P0 = [stats.binom.pmf(y, n_pub, p) for y in range(n_pub+1)]
   Pk = [stats.binom.pmf(y, n_pub, q) for y in range(n_pub+1)]
 
-  ## g|D', take 1-delta quantile of ln(R)
+  ## part 1: sample g|D', take 1-delta quantile of ln(R)
   g0 = stats.multinomial.rvs(n_bit-1, P0, size=n_simu)
   gk = stats.multinomial.rvs(1, Pk, size=n_simu)
   g = g0 + gk
@@ -150,18 +173,23 @@ def estimate_privacy_of_bloom_filter(
   privacy_loss = g.dot(w) / n_bit
   e0 = np.quantile(np.log(privacy_loss), 1 - d)
 
-  ## g|D, take delta quantile of ln(R)
+  ## part 2: sample g|D, take delta quantile of ln(R)
   g = stats.multinomial.rvs(n_bit, P0, size=n_simu)
   w = [(q / p) ** (2 * y - n_pub) for y in range(n_pub+1)]
   privacy_loss = g.dot(w) / n_bit
   e1 = np.quantile(-np.log(privacy_loss), 1 - d)
 
+  ## take the maximum 
   return max(e0, e1)
 
 
 def estimate_flip_prob(
   n_pub, n_bit, e=np.log(3), d=1e-4, n_simu=100000, tol=1e-5):
   """Search for needed flipping probability (p). 
+
+  Given the target privacy parameter (e), this function searches for the needed
+  flipping probability in "shuffling+blipping" algorithm, using a binary search
+  schema. 
 
   Args: 
     n_pub: Integer, the number of publishers.
@@ -174,8 +202,11 @@ def estimate_flip_prob(
   Returns:
     An estimated of flipping probability.
   """
+  ## check input
   if tol <= 0:
     raise ValueError('"tol" should be positive.')
+
+  ## binary search of required flip prob p
   lower = 0
   upper = 0.5
   p = (lower + upper) / 2
