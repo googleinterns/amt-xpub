@@ -39,7 +39,7 @@ def main(argv):
   # required p for one BF
   data = pd.DataFrame(columns=['# input 1s', 'epsilon'])
   for count_input_ones in (1, 12509, 37509, 62509, 87509, 99999):
-    p_hat = bp.evaluate_privacy_of_one_bloom_filter(
+    p_hat = bp.evaluate_privacy_for_one_bloom_filter(
       count_input_ones=count_input_ones, p=0.05, n_bit=FLAGS.n_bit, 
       d=0.001, n_simu=5000)
     data.loc[len(data)] = [count_input_ones, p_hat]

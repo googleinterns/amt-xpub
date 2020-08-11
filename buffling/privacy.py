@@ -64,8 +64,8 @@ def ratio_of_hypergeometric_mgf(
   """Compute the ratio of two hypergeometric moment-generating functions.
 
   Definition: E((q/p)^(2x)) / E((q/p)^(2y)),
-  where x ~ HG(m, count_input_ones, count_output_ones), and 
-  y ~ HG(m, count_input_ones + 1, count_output_ones) 
+  where x ~ HG(m, count_input_ones + 1, count_output_ones), and 
+  y ~ HG(m, count_input_ones, count_output_ones) 
   Note: The increment change means that we have count_input_ones + 1.
   Please see `docs/technical-details.md` for details. 
 
@@ -88,17 +88,17 @@ def ratio_of_hypergeometric_mgf(
     count_output_ones = n_bit - count_output_ones
   
   ## invoke Gauss continued fractions
-  a = - count_input_ones
+  a = - count_input_ones - 1
   b = - count_output_ones
   c = n_bit - count_output_ones - count_input_ones 
   z = (q / p) ** 2
   l = evaluate_gauss_continued_fraction(a, b, c, z, depth=depth)
 
-  return (n_bit - count_output_ones) / \
-    np.maximum(n_bit - count_output_ones - count_input_ones, 1) * l
+  return np.maximum(n_bit - count_output_ones - count_input_ones, 1) / \
+    (n_bit - count_output_ones) / l
 
 
-def evaluate_privacy_of_one_bloom_filter(
+def evaluate_privacy_for_one_bloom_filter(
   count_input_ones, p, n_bit, d=1e-4, n_simu=50000, depth=1000):
   """Evaluate the privacy of one bloom filter given the count of input ones.
 
@@ -127,7 +127,7 @@ def evaluate_privacy_of_one_bloom_filter(
     r[i] = ratio_of_hypergeometric_mgf(
       count_input_ones[i], count_output_ones[i], 
       p=p, n_bit=n_bit, depth=depth) 
-  privacy_loss = p / q / r ## Pr(A(D')=X) / Pr(A(D)=X)
+  privacy_loss = p / q * r ## Pr(A(D')=X) / Pr(A(D)=X)
   e0 = np.quantile(-np.log(privacy_loss), 1 - d)
 
   ## sample (count_output_ones) given (count_input_ones)
@@ -138,14 +138,14 @@ def evaluate_privacy_of_one_bloom_filter(
     r[i] = ratio_of_hypergeometric_mgf(
       count_input_ones[i], count_output_ones[i], 
       p=p, n_bit=n_bit, depth=depth) 
-  privacy_loss = p / q / r ## Pr(A(D')=X) / Pr(A(D)=X)
+  privacy_loss = p / q * r ## Pr(A(D')=X) / Pr(A(D)=X)
   e1 = np.quantile(np.log(privacy_loss), 1 - d)
 
   ## return the max
   return max(e0, e1)
 
 
-def estimate_privacy_of_bloom_filter(
+def estimate_privacy_for_bloom_filter(
   n_pub, n_bit, p, d=1e-4, n_simu=100000):
   """Calculate the privacy parameter (epsilon) of bloom filters. 
 
@@ -211,7 +211,7 @@ def estimate_flip_prob(
   upper = 0.5
   p = (lower + upper) / 2
   while lower + tol < upper:
-    e_hat = estimate_privacy_of_bloom_filter(
+    e_hat = estimate_privacy_for_bloom_filter(
       n_pub, n_bit, p, d=d, n_simu=n_simu)
     if e_hat < e:
       upper = p
