@@ -33,7 +33,9 @@ import buffling.privacy as bp
 import buffling.signal_to_noise_ratio as snr
 ```
 
-### Modules
+### Documentation 
+
+Please refer to `docs/technical-details.pdf` for more details of the design and the mathmatical derivations. 
 
 #### Signal-to-noise ratio (`signal_to_noise_ratio` module)
 The `signal_to_noise_ratio` module contains `calculate_signal_to_noise_ratio()` which evaluates the signal-to-noise ratio of the output of "shuffling+flipping".
