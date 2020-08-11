@@ -28,10 +28,9 @@ packages.
 
 ### Example
 `buffling` stands for "bit shuffling." 
-```python
-import buffling.privacy as bp
-import buffling.signal_to_noise_ratio as snr
-```
+To start with and get a sense for how this code all works together, check out the examples/ folder.
+
+Which will run the same experiments across multiple different estimation methods
 
 ### Documentation 
 
