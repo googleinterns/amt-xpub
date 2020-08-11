@@ -34,9 +34,10 @@ def generate_transition_matrix(n_pub, p=0.1, first2=False, tol=1e-15):
   Return: 
     A numpy.array of n_pub x n_pub, containing the transition probability. 
   '''
-  n_logo = 2**n_pub
+  n_logo = 2 ** n_pub
   n_row = 2 if first2 else n_logo
   transition_mat = np.zeros((n_row, n_logo))
+  ## use binary representation and compute hamming distance
   for i in range(n_row):
     for j in range(n_logo):
       n_p = bin(i ^ j)[2:].count('1')
@@ -62,21 +63,29 @@ def calculate_signal_to_noise_ratio_of_logo_counts(
     A real number of SNR if maximizer is False. Otherwise, 
     both the SNR and the maximizing logo-counts coefficients. 
   '''
+  ## compute the B matrix
   D = np.diag(input_logo_wgt.dot(transition_mat))
   F = np.diag(input_logo_wgt)
   B = D - (transition_mat.transpose()).dot(F.dot(transition_mat))
-  a = transition_mat[i,:] - transition_mat[j,:]
+
+  ## incremental query from logo j to logo i
+  a = transition_mat[j,:] - transition_mat[i,:]
+  ## solve for one set of linear coefficients
   c = sp.linalg.solve(B, a)
+  ## normalize to unite length
   c -= np.mean(c) 
   c /= np.linalg.norm(c)
+
+  ## compute the maximizing SNR
   snr = sum((c * a) ** 2) / np.dot(c.transpose(), B.dot(c))
+
   if maximizer: 
     return snr, c
   return snr
 
 
 def calculate_signal_to_noise_ratio(input_logo_wgt, transition_mat):
-  """Calculate the signal-to-noise ratio.
+  """Calculate the signal-to-noise ratio for all possible incremental change.
 
   Args: 
     input_logo_wgt: Input logo-counts weights. 
@@ -86,6 +95,8 @@ def calculate_signal_to_noise_ratio(input_logo_wgt, transition_mat):
     A real number, the maximal SNR.
   """
   n_logo = transition_mat.shape[0]
+
+  ## brute-force all possible incremental change from logo i to logo j
   s = np.zeros(transition_mat.shape)
   for i in range(n_logo):
     for j in range(n_logo):
@@ -97,7 +108,10 @@ def calculate_signal_to_noise_ratio(input_logo_wgt, transition_mat):
 
 
 def calculate_max_signal_to_noise_ratio(input_logo_wgt, transition_mat):
-  """Calculate the max signal-to-noise ratio (quickly).
+  """Calculate the max signal-to-noise ratio. 
+
+  Calculate the signal-to-noise ratio upon the incremental change 
+  from logo i to logo j.
 
   Args: 
     input_logo_wgt: Input logo-counts weights. 
