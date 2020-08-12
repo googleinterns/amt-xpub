@@ -28,15 +28,14 @@ def evaluate_gauss_continued_fraction(a, b ,c, z, depth=1000):
   `docs/technical-details.md` for details. 
 
   Args: 
-    a, b, c, z: Numeric parameters to the function. 
+    a, b, c, z: Numeric parameters to the function. In particular, c > 0.
     depth: Positive integer, Approximating depth.
 
   Returns:
     The approximated value.
   """
   ## check input
-  if c < 0:
-    raise ValueError('c must be non-negative.')
+  assert c > 0, 'c must be non-negative.'
 
   ## compute the constant series
   k = np.zeros(depth)
@@ -115,6 +114,12 @@ def evaluate_privacy_for_one_bloom_filter(
     A real number of the estimated epsilon.
   """
   ## check input
+  assert int(n_bit) == n_bit and n_bit > 0, "n_pub must be a postive integer." 
+  assert count_input_ones >= 0 and count_input_ones <= n_bit, \
+    "n_pub must be a postive integer." 
+  assert p > 0 and p < 1, "p can only range between (0,1)"
+
+  ## process input
   q = 1 - p
   if isinstance(count_input_ones, int):
     count_input_ones = np.repeat(count_input_ones, n_simu)
@@ -160,6 +165,11 @@ def estimate_privacy_for_bloom_filter(
   Returns:
     An estimated of flipping probability.
   """
+  ## check input 
+  assert int(n_pub) == n_pub and n_pub > 0, "n_pub must be a postive integer." 
+  assert int(n_bit) == n_bit and n_bit > 0, "n_pub must be a postive integer." 
+  assert p > 0 and p < 1, "p can only range between (0,1)"
+
   ## generate the parameters needed for sampling distributions
   q = 1 - p
   P0 = [stats.binom.pmf(y, n_pub, p) for y in range(n_pub+1)]
@@ -202,9 +212,11 @@ def estimate_flip_prob(
   Returns:
     An estimated of flipping probability.
   """
-  ## check input
-  if tol <= 0:
-    raise ValueError('"tol" should be positive.')
+  ## check input 
+  assert int(n_pub) == n_pub and n_pub > 0, "n_pub must be a postive integer." 
+  assert int(n_bit) == n_bit and n_bit > 0, "n_pub must be a postive integer." 
+  assert e > 0, "e must be a postive number."
+  assert tol > 0, '"tol" must be a positive number.'
 
   ## binary search of required flip prob p
   lower = 0
