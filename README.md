@@ -28,8 +28,8 @@ After these steps, the code and its dependencies will be installed as Python
 packages.
 
 ## Examples
-* The `signal_to_noise_ratio` module evaluates the signal-to-noise ratio of the output of "shuffling+flipping". Please check out examples/plot_signal_to_noise_ratio_analysis_results.py, which will generate three figures of the SNR analysis (the plots will be saved under docs/fig/). 
-* The `privacy` module evaluates the privacy for one or multiple bloom filters. Please check out: examples/evaluate_privacy_of_shuffling_and_flipping.py, which runs two privacy evaluation for one bloom filter and for multiple bloom filters respectively.
+* The `signal_to_noise_ratio` module evaluates the signal-to-noise ratio of the output of "shuffling+flipping". Please check out examples/plot_signal_to_noise_ratio_analysis_results.py, which will generate three figures of the SNR analysis (the plots will be saved to docs/fig/). 
+* The `privacy` module evaluates the privacy for one or multiple bloom filters. Please check out: examples/evaluate_privacy_of_shuffling_and_flipping.py, which runs two privacy evaluation for one bloom filter and for multiple bloom filters respectively (the result will be printed to screen).
 
 Which will run the same experiments across multiple different estimation methods
 
