@@ -35,7 +35,7 @@ def evaluate_gauss_continued_fraction(a, b ,c, z, depth=1000):
     The approximated value.
   """
   ## check input
-  assert c > 0, 'c must be non-negative.'
+  assert c >= 0, 'c must be non-negative.'
 
   ## compute the constant series
   k = np.zeros(depth)
