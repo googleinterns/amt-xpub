@@ -15,12 +15,12 @@ We evaluate this algorithm in terms of its differential privacy (and accuracy).
 It is recommended to use a virtual environment with this project. 
 If you already have one, you can skip to the next step.
 The quickest way to set up a virtual environment is by running:
-```bash
+```
 python3 -m venv env
 source env/bin/activate
 ```
 To install the requirements as well as the evaluation framework, simply run:
-```bash
+```
 pip install -r requirements.txt
 python setup.py install
 ```
@@ -35,4 +35,4 @@ Which will run the same experiments across multiple different estimation methods
 
 ## Documentation 
 
-Please refer to `docs/technical-details.pdf` for more details of the design and the mathmatical derivations. 
+Please check out: docs/technical-details.pdf, which contains all the design details and the mathmatical derivations. 
