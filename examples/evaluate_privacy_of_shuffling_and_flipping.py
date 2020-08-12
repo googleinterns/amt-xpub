@@ -25,29 +25,33 @@ import pandas as pd
 
 # global parameters
 FLAGS = flags.FLAGS
-flags.DEFINE_float("epsilon", np.log(3), "Privacy parameter (multi-BFs)")
-flags.DEFINE_float("delta", 1e-4, "Approximation parameter (multi-BFs)")
-flags.DEFINE_integer("n_pub", 6, "Number of publishers") 
-flags.DEFINE_integer("n_bit", 100000, "Number of bits (sketch size)") 
-flags.DEFINE_integer("n_simu", 100000, "Number of sampling times") 
+flags.DEFINE_float("flip_prob", np.log(3), "Flipping probability (example 1)")
+flags.DEFINE_float("epsilon", np.log(3), "Privacy parameter (example 2)")
+flags.DEFINE_float("delta", 1e-3, "Approximation parameter of DP")
+flags.DEFINE_integer("n_pub", 6, "Number of publishers (example 2)") 
+flags.DEFINE_integer("n_bit", 100000, "Sketch size, aka the number of bits.") 
+flags.DEFINE_integer("n_simu", 5000, "Number of sampling times") 
 
 
 def main(argv):
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
 
-  # required p for one BF
+  # example 1: estimate the privacy parameter (epsilon) for one BF
   data = pd.DataFrame(columns=['# input 1s', 'epsilon'])
-  for count_input_ones in (1, 12509, 37509, 62509, 87509, 99999):
+  count_input_ones_breaks = \
+    [1] + [int(FLAGS.n_bits * i / 8) for i in [1, 3, 5, 7]] \
+      + [FLAGS.n_bits - 1]
+  for count_input_ones in count_input_ones_breaks:
     p_hat = bp.evaluate_privacy_for_one_bloom_filter(
-      count_input_ones=count_input_ones, p=0.05, n_bit=FLAGS.n_bit, 
-      d=0.001, n_simu=5000)
+      count_input_ones=count_input_ones, p=FLAGS.flip_prob, n_bit=FLAGS.n_bit, 
+      d=FLAGS.delta, n_simu=FLAGS.n_simu)
     data.loc[len(data)] = [count_input_ones, p_hat]
   print("One bloom filter of {FLAGS.n_bit} bits.")
   print("Estimated privacy parameter (delta=0.001):")
   print(data)
 
-  # required p for multiple BFs
+  # example 2: estimate the required flipping probablity for multiple BFs
   print(f"\n{FLAGS.n_pub} publishers, {FLAGS.n_bit} bits")
   print(f"epsilon = {FLAGS.epsilon}, \
   delta = {FLAGS.delta}, sampling {FLAGS.n_simu} times")
