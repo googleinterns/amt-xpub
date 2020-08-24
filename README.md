@@ -7,10 +7,11 @@ Host: Jiayu Peng (jiayupeng@), Xichen Huang (huangxichen@, co-host)
 ## Overview
 
 This repository includes code for evaluation of the "shuffling+flipping" algorithm for bloom filter (BF). 
+`buffling` stands for "bit shuffling." 
 In this algorithm, the "shuffling" refers to a random permutation of bits in the BF, and the "flipping" refers to independent flipping (with a certain probability) of bits in the BF. 
 We evaluate this algorithm in terms of its differential privacy (and accuracy). 
 
-### Quickstart
+## Quickstart
 It is recommended to use a virtual environment with this project. 
 If you already have one, you can skip to the next step.
 The quickest way to set up a virtual environment is by running:
@@ -26,26 +27,12 @@ python setup.py install
 After these steps, the code and its dependencies will be installed as Python 
 packages.
 
-### Example
-`buffling` stands for "bit shuffling." 
-```python
-import buffling.privacy as bp
-import buffling.signal_to_noise_ratio as snr
-```
+## Examples
+* The `signal_to_noise_ratio` module evaluates the signal-to-noise ratio of the output of "shuffling+flipping". Please check out examples/plot_signal_to_noise_ratio_analysis_results.py, which will generate three figures of the SNR analysis (the plots will be saved to docs/fig/). 
+* The `privacy` module evaluates the privacy for one or multiple bloom filters. Please check out: examples/evaluate_privacy_of_shuffling_and_flipping.py, which runs two privacy evaluation for one bloom filter and for multiple bloom filters respectively (the result will be printed to screen).
 
-### Modules
+Which will run the same experiments across multiple different estimation methods
 
-#### Signal-to-noise ratio (`signal_to_noise_ratio` module)
-The `signal_to_noise_ratio` module contains `calculate_signal_to_noise_ratio()` which evaluates the signal-to-noise ratio of the output of "shuffling+flipping".
+## Documentation 
 
-#### Privacy evaluation (`privacy` module)
-
-The `privacy` module contains the five functions.
-
-* For scientific computating (helpers): 
-  * `evaluate_gauss_continued_fraction`()  
-  * `ratio_of_hypergeometric_mgf`()
-* For privacy evaluation for bloom filter(s):
-  * `evaluate_privacy_of_one_bloom_filter`()
-  * `estimate_privacy_of_bloom_filter`() 
-  * `estimate_flip_prob`() 
+Please check out: docs/technical-details.pdf, which contains all the design details and the mathmatical derivations. 
