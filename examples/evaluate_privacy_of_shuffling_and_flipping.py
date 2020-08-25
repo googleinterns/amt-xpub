@@ -25,7 +25,7 @@ import pandas as pd
 
 # global parameters
 FLAGS = flags.FLAGS
-flags.DEFINE_float("flip_prob", np.log(3), "Flipping probability (example 1)")
+flags.DEFINE_float("flip_prob", 0.05, "Flipping probability (example 1)")
 flags.DEFINE_float("epsilon", np.log(3), "Privacy parameter (example 2)")
 flags.DEFINE_float("delta", 1e-3, "Approximation parameter of DP")
 flags.DEFINE_integer("n_pub", 6, "Number of publishers (example 2)") 
@@ -40,8 +40,8 @@ def main(argv):
   # example 1: estimate the privacy parameter (epsilon) for one BF
   data = pd.DataFrame(columns=['# input 1s', 'epsilon'])
   count_input_ones_breaks = \
-    [1] + [int(FLAGS.n_bits * i / 8) for i in [1, 3, 5, 7]] \
-      + [FLAGS.n_bits - 1]
+    [1] + [int(FLAGS.n_bit * i / 8) for i in [1, 3, 5, 7]] \
+      + [FLAGS.n_bit - 1]
   for count_input_ones in count_input_ones_breaks:
     p_hat = bp.evaluate_privacy_for_one_bloom_filter(
       count_input_ones=count_input_ones, p=FLAGS.flip_prob, n_bit=FLAGS.n_bit, 
